@@ -1,4 +1,4 @@
-const CACHE = 'md-note-v2';
+const CACHE = 'md-note-v3';
 const ASSETS = [
   './',
   './index.html',

@@ -21,7 +21,7 @@
   header{display:flex;align-items:center;flex-wrap:wrap;gap:10px 12px;padding:12px 18px;background:var(--paper);border-bottom:1px solid var(--hair);}
   .brand{display:flex;align-items:baseline;gap:10px;margin-right:auto;}
   .brand .mark{font-family:"Hiragino Mincho ProN","Yu Mincho",serif;font-size:18px;letter-spacing:.04em;}
-  .brand .sub{font-size:11px;color:var(--muted);letter-spacing:.08em;}
+  .brand .sub{font-size:13.5px;color:var(--ink);font-weight:600;max-width:46vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .count{font-size:12px;color:var(--muted);white-space:nowrap;}
   .actions{display:flex;gap:8px;flex-wrap:wrap;}
   button.tool{font:inherit;font-size:13px;padding:7px 13px;border-radius:8px;border:1px solid var(--hair);background:var(--paper);color:var(--ink);cursor:pointer;transition:background .15s,border-color .15s;}
@@ -79,7 +79,7 @@
 </head>
 <body data-mode="preview">
   <header>
-    <div class="brand"><span class="mark">綴</span><span class="sub">MARKDOWN NOTE</span></div>
+    <div class="brand"><span class="mark">綴</span><span class="sub" id="fileName">無題</span></div>
     <span class="count" id="count">0 文字</span>
     <div class="actions">
       <button class="tool" id="newBtn">新規</button>
@@ -148,6 +148,8 @@ function greet(name) {
   const preview=document.getElementById('preview');
   const count=document.getElementById('count');
   const KEY='md-note-v1';
+  const NAMEKEY='md-note-name-v1';
+  function setFileName(n){ n=(n&&n.trim())||'無題'; document.getElementById('fileName').textContent=n; try{ localStorage.setItem(NAMEKEY,n); }catch(e){} }
 
   function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
@@ -232,6 +234,7 @@ function greet(name) {
 
   /* restore saved note */
   try{ const saved=localStorage.getItem(KEY); if(saved!==null && saved.trim()!=='') editor.value=saved; }catch(e){}
+  try{ const savedName=localStorage.getItem(NAMEKEY); if(savedName) document.getElementById('fileName').textContent=savedName; }catch(e){}
   render();
   editor.addEventListener('input',function(){ render(); save(); });
 
@@ -248,11 +251,11 @@ function greet(name) {
   fileInput.addEventListener('change',function(){
     const f=fileInput.files[0]; if(!f) return;
     const r=new FileReader();
-    r.onload=function(){ editor.value=r.result; render(); save(); setMode('preview'); };
+    r.onload=function(){ editor.value=r.result; render(); save(); setFileName(f.name); setMode('preview'); };
     r.readAsText(f,'utf-8'); fileInput.value='';
   });
   document.getElementById('newBtn').addEventListener('click',function(){
-    if(editor.value.trim()==='' || confirm('今の内容を消して、新しいノートを始めますか？')){ editor.value=''; render(); save(); setMode('edit'); editor.focus(); }
+    if(editor.value.trim()==='' || confirm('今の内容を消して、新しいノートを始めますか？')){ editor.value=''; render(); save(); setFileName('無題'); setMode('edit'); editor.focus(); }
   });
   document.getElementById('copyBtn').addEventListener('click',function(e){
     const b=e.target,tx=b.textContent;
@@ -260,7 +263,7 @@ function greet(name) {
   });
   document.getElementById('downloadBtn').addEventListener('click',function(){
     const blob=new Blob([editor.value],{type:'text/markdown;charset=utf-8'});
-    const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='note.md'; a.click(); URL.revokeObjectURL(url);
+    const nm=document.getElementById('fileName').textContent; const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=(nm&&nm!=='無題')?nm:'note.md'; a.click(); URL.revokeObjectURL(url);
   });
   editor.addEventListener('keydown',function(e){
     if(e.key==='Tab'){ e.preventDefault(); const s=editor.selectionStart,en=editor.selectionEnd;
@@ -272,7 +275,7 @@ function greet(name) {
     launchQueue.setConsumer(function(params){
       if(!params || !params.files || !params.files.length) return;
       params.files[0].getFile().then(function(file){ return file.text(); }).then(function(text){
-        editor.value=text; render(); save(); setMode('preview');
+        editor.value=text; render(); save(); setFileName(file.name); setMode('preview');
       }).catch(function(){});
     });
   }
