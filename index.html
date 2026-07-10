@@ -267,6 +267,15 @@ function greet(name) {
       editor.value=editor.value.slice(0,s)+'  '+editor.value.slice(en); editor.selectionStart=editor.selectionEnd=s+2; render(); save(); }
   });
 
+  /* open files that were launched from Explorer (double-click / "open with") */
+  if('launchQueue' in window && 'files' in LaunchParams.prototype){
+    launchQueue.setConsumer(function(params){
+      if(!params || !params.files || !params.files.length) return;
+      params.files[0].getFile().then(function(file){ return file.text(); }).then(function(text){
+        editor.value=text; render(); save(); setMode('preview');
+      }).catch(function(){});
+    });
+  }
   if('serviceWorker' in navigator){ window.addEventListener('load',function(){ navigator.serviceWorker.register('./sw.js').catch(function(){}); }); }
 </script>
 </body>
