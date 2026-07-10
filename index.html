@@ -79,7 +79,7 @@
 </head>
 <body data-mode="preview">
   <header>
-    <div class="brand"><span class="mark">綴</span><span class="sub" id="fileName">無題</span></div>
+    <div class="brand"><span class="sub" id="fileName">無題</span></div>
     <span class="count" id="count">0 文字</span>
     <div class="actions">
       <button class="tool" id="newBtn">新規</button>
@@ -274,8 +274,10 @@ function greet(name) {
   if('launchQueue' in window && 'files' in LaunchParams.prototype){
     launchQueue.setConsumer(function(params){
       if(!params || !params.files || !params.files.length) return;
-      params.files[0].getFile().then(function(file){ return file.text(); }).then(function(text){
-        editor.value=text; render(); save(); setFileName(file.name); setMode('preview');
+      var handle=params.files[0];
+      var nm=handle.name;
+      handle.getFile().then(function(file){ return file.text(); }).then(function(text){
+        editor.value=text; render(); save(); setFileName(nm); setMode('preview');
       }).catch(function(){});
     });
   }
