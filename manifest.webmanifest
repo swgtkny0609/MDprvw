@@ -1,0 +1,17 @@
+{
+  "name": "マークダウン・ノート",
+  "short_name": "MDノート",
+  "description": "オフラインで使える、上品なマークダウン・ビューア／エディタ",
+  "lang": "ja",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eae7de",
+  "theme_color": "#c15f3c",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

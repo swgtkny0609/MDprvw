@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>マークダウン・ノート</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23c15f3c'/><g stroke='%23fff' stroke-width='4' stroke-linecap='round'><path d='M15 21h26M15 31h26M15 41h13'/></g><path d='M43 33v11m0 0l-5-5m5 5l5-5' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<meta name="theme-color" content="#c15f3c">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<style>
+  :root{
+    --chrome:#eae7de;--paper:#ffffff;--ink:#2b2a26;--muted:#6f6b62;--hair:#e6e2d7;
+    --accent:#c15f3c;--accent-soft:#f6ece5;
+    --code-bg:#2b2823;--code-bar:#37332c;--code-txt:#e7e1d5;--code-muted:#a9a396;--inline-code-bg:#efece4;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;}
+  body{background:var(--chrome);color:var(--ink);font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased;}
+
+  header{display:flex;align-items:center;flex-wrap:wrap;gap:10px 12px;padding:12px 18px;background:var(--paper);border-bottom:1px solid var(--hair);}
+  .brand{display:flex;align-items:baseline;gap:10px;margin-right:auto;}
+  .brand .mark{font-family:"Hiragino Mincho ProN","Yu Mincho",serif;font-size:18px;letter-spacing:.04em;}
+  .brand .sub{font-size:11px;color:var(--muted);letter-spacing:.08em;}
+  .count{font-size:12px;color:var(--muted);white-space:nowrap;}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;}
+  button.tool{font:inherit;font-size:13px;padding:7px 13px;border-radius:8px;border:1px solid var(--hair);background:var(--paper);color:var(--ink);cursor:pointer;transition:background .15s,border-color .15s;}
+  button.tool:hover{background:var(--accent-soft);border-color:#e2c8b8;}
+  button.tool:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  .modebar{display:flex;align-items:center;justify-content:center;padding:9px 16px;background:var(--chrome);}
+  .seg{display:inline-flex;background:var(--paper);border:1px solid var(--hair);border-radius:10px;padding:3px;}
+  .seg button{font:inherit;font-size:13px;padding:6px 16px;border:none;background:transparent;color:var(--muted);border-radius:7px;cursor:pointer;transition:background .15s,color .15s;}
+  .seg button.active{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+  .seg button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  main{flex:1;min-height:0;display:flex;padding:14px;gap:14px;}
+  .pane{flex:1;min-width:0;min-height:0;display:flex;background:var(--paper);border:1px solid var(--hair);border-radius:12px;box-shadow:0 1px 2px rgba(30,26,20,.03);overflow:hidden;}
+
+  #editor{flex:1;border:none;resize:none;outline:none;padding:26px 28px;font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;font-size:15px;line-height:1.85;color:var(--ink);background:var(--paper);}
+  #editor::placeholder{color:#c2bcae;}
+
+  #preview{flex:1;overflow:auto;padding:30px 34px;font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;font-size:16px;line-height:1.75;color:var(--ink);}
+  #preview>*:first-child{margin-top:0;}
+  #preview h1,#preview h2,#preview h3,#preview h4,#preview h5,#preview h6{font-weight:700;line-height:1.35;margin:1.5em 0 .55em;letter-spacing:.005em;}
+  #preview h1{font-size:1.6em;}#preview h2{font-size:1.32em;}#preview h3{font-size:1.12em;}
+  #preview p{margin:.85em 0;}
+  #preview a{color:var(--accent);text-underline-offset:2px;}
+  #preview strong{font-weight:700;}
+  #preview em{font-style:italic;}
+  #preview ul,#preview ol{padding-left:1.5em;margin:.85em 0;}
+  #preview li{margin:.3em 0;}
+  #preview li::marker{color:var(--muted);}
+  #preview blockquote{margin:1.05em 0;padding:.5em 1.1em;border-left:3px solid #e0b9a6;color:var(--muted);background:var(--accent-soft);border-radius:0 8px 8px 0;}
+  #preview hr{border:none;border-top:1px solid var(--hair);margin:1.7em 0;}
+  #preview table{border-collapse:collapse;width:100%;margin:1.05em 0;font-size:.95em;}
+  #preview th,#preview td{border:1px solid var(--hair);padding:8px 12px;text-align:left;}
+  #preview th{background:var(--accent-soft);font-weight:600;}
+  #preview img{max-width:100%;border-radius:8px;}
+  #preview :not(pre)>code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.86em;background:var(--inline-code-bg);color:#5a463c;padding:.15em .4em;border-radius:5px;}
+
+  #preview .codeblock{margin:1.2em 0;border-radius:12px;overflow:hidden;border:1px solid #211f1b;}
+  #preview .codebar{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;background:var(--code-bar);}
+  #preview .codebar .lang{font-size:12px;color:var(--code-muted);letter-spacing:.04em;text-transform:lowercase;}
+  #preview .codecopy{font:inherit;font-size:12px;color:var(--code-muted);background:transparent;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;transition:color .15s,background .15s;}
+  #preview .codecopy:hover{color:#fff;background:rgba(255,255,255,.08);}
+  #preview .codeblock pre{margin:0;background:var(--code-bg);padding:16px 18px;overflow:auto;}
+  #preview .codeblock pre code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.85em;line-height:1.7;color:var(--code-txt);background:none;padding:0;}
+  .tok-com{color:#8a8272;font-style:italic;}
+  .tok-str{color:#a7b98c;}
+  .tok-num{color:#e0b06a;}
+  .tok-kw{color:#d98a6a;}
+
+  body[data-mode="preview"] #editorPane{display:none;}
+  body[data-mode="edit"] #previewPane{display:none;}
+  @media (max-width:819px){main{padding:10px;gap:0;}#segSplit{display:none;}body[data-mode="split"] #editorPane{display:none;}}
+  @media (prefers-reduced-motion:reduce){*{transition:none !important;}}
+</style>
+</head>
+<body data-mode="preview">
+  <header>
+    <div class="brand"><span class="mark">綴</span><span class="sub">MARKDOWN NOTE</span></div>
+    <span class="count" id="count">0 文字</span>
+    <div class="actions">
+      <button class="tool" id="newBtn">新規</button>
+      <button class="tool" id="openBtn">開く</button>
+      <button class="tool" id="copyBtn">コピー</button>
+      <button class="tool" id="downloadBtn">.md で保存</button>
+    </div>
+  </header>
+
+  <div class="modebar">
+    <div class="seg" role="tablist">
+      <button id="segPreview" class="active">プレビュー</button>
+      <button id="segSplit">分割</button>
+      <button id="segEdit">編集</button>
+    </div>
+  </div>
+
+  <main>
+    <section class="pane" id="editorPane">
+      <textarea id="editor" spellcheck="false" placeholder="ここに書いてください…"># ようこそ
+
+これは、ネットにつながっていなくても動く **マークダウン・ノート** です。上の切り替えで「プレビュー / 分割 / 編集」を選べます。書いた内容は自動で保存され、次に開いたときも残っています。
+
+## 使い方
+
+- 「開く」から手元の `.md` ファイルを読み込めます
+- 見出しは `#` を先頭につけて
+- **太字** は `**`、*斜体* は `*` で囲む
+- リンクは [このように](https://example.com)
+
+> 引用は、こんなふうにやわらかく表示されます。
+
+### コード
+
+`インラインのコード` も、まとまったコードも書けます。
+
+```js
+function greet(name) {
+  // やさしく挨拶します
+  const message = "こんにちは、" + name + "さん";
+  console.log(message);
+  return name.length;
+}
+```
+
+### 表
+
+| 項目 | 書き方 |
+| --- | --- |
+| 見出し | # を使う |
+| 箇条書き | - を使う |
+
+---
+
+自由に書き換えて、あなたのノートにしてくださいね。</textarea>
+    </section>
+    <section class="pane" id="previewPane">
+      <article id="preview"></article>
+    </section>
+  </main>
+
+  <input type="file" id="fileInput" accept=".md,.markdown,.txt,text/markdown,text/plain" hidden>
+
+<script>
+  const editor=document.getElementById('editor');
+  const preview=document.getElementById('preview');
+  const count=document.getElementById('count');
+  const KEY='md-note-v1';
+
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+  function highlight(escaped){
+    const RE=/(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|\b(0x[0-9a-fA-F]+|\d+\.?\d*)\b|\b(function|const|let|var|if|else|elif|return|for|while|do|class|struct|enum|interface|import|export|from|as|new|delete|await|async|def|lambda|print|public|private|protected|static|final|void|int|float|double|char|bool|boolean|string|true|false|null|nil|None|True|False|this|self|super|try|catch|except|finally|throw|raise|switch|case|default|break|continue|in|of|is|not|and|or|typeof|instanceof|yield|package|func)\b/g;
+    return escaped.replace(RE,function(m,com,str,num,kw){
+      if(com!==undefined)return '<span class="tok-com">'+com+'</span>';
+      if(str!==undefined)return '<span class="tok-str">'+str+'</span>';
+      if(num!==undefined)return '<span class="tok-num">'+num+'</span>';
+      if(kw!==undefined)return '<span class="tok-kw">'+kw+'</span>';
+      return m;
+    });
+  }
+
+  function inline(t){
+    const codes=[];
+    t=t.replace(/`([^`]+)`/g,function(m,c){codes.push(c);return '\u0003'+(codes.length-1)+'\u0004';});
+    t=t.replace(/!\[([^\]]*)\]\(([^)]+)\)/g,'<img alt="$1" src="$2">')
+       .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')
+       .replace(/(\*\*|__)(?=\S)([\s\S]*?\S)\1/g,'<strong>$2</strong>')
+       .replace(/(\*|_)(?=\S)([\s\S]*?\S)\1/g,'<em>$2</em>');
+    t=t.replace(/\u0003(\d+)\u0004/g,function(m,n){return '<code>'+codes[+n]+'</code>';});
+    return t;
+  }
+
+  function splitRow(line){
+    return line.trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(function(c){return c.trim();});
+  }
+
+  function mdToHtml(src){
+    const blocks=[];
+    src=src.replace(/```([\w-]*)\n([\s\S]*?)```/g,function(m,lang,code){
+      const hl=highlight(esc(code.replace(/\n+$/,'')));
+      blocks.push('<div class="codeblock"><div class="codebar"><span class="lang">'+(lang||'text')+'</span><button class="codecopy">コピー</button></div><pre><code>'+hl+'</code></pre></div>');
+      return '\n\u0001'+(blocks.length-1)+'\u0002\n';
+    });
+    const lines=src.split('\n');
+    const out=[]; let i=0; let para=[];
+    function flush(){ if(para.length){ out.push('<p>'+para.join('<br>')+'</p>'); para=[]; } }
+    while(i<lines.length){
+      const line=lines[i]; const t=line.trim();
+      if(/^\u0001\d+\u0002$/.test(t)){ flush(); out.push(t); i++; continue; }
+      if(t===''){ flush(); i++; continue; }
+      let h=line.match(/^(#{1,6})\s+(.*)$/);
+      if(h){ flush(); out.push('<h'+h[1].length+'>'+inline(esc(h[2]))+'</h'+h[1].length+'>'); i++; continue; }
+      if(/^\s*([-*_])\1{2,}\s*$/.test(line)){ flush(); out.push('<hr>'); i++; continue; }
+      if(line.indexOf('|')>=0 && i+1<lines.length && lines[i+1].indexOf('-')>=0 && /^\s*\|?[\s:|-]+\|?\s*$/.test(lines[i+1])){
+        flush();
+        const header=splitRow(line);
+        const align=splitRow(lines[i+1]).map(function(c){var l=c.charAt(0)===':',r=c.charAt(c.length-1)===':';return l&&r?'center':r?'right':l?'left':'';});
+        i+=2; const rows=[];
+        while(i<lines.length && lines[i].indexOf('|')>=0 && lines[i].trim()!==''){ rows.push(splitRow(lines[i])); i++; }
+        let tb='<table><thead><tr>'+header.map(function(c,idx){return '<th'+(align[idx]?' style="text-align:'+align[idx]+'"':'')+'>'+inline(esc(c))+'</th>';}).join('')+'</tr></thead><tbody>';
+        rows.forEach(function(r){tb+='<tr>'+r.map(function(c,idx){return '<td'+(align[idx]?' style="text-align:'+align[idx]+'"':'')+'>'+inline(esc(c||''))+'</td>';}).join('')+'</tr>';});
+        tb+='</tbody></table>'; out.push(tb); continue;
+      }
+      if(/^\s*>\s?/.test(line)){ flush(); const buf=[];
+        while(i<lines.length && /^\s*>\s?/.test(lines[i])){ buf.push(inline(esc(lines[i].replace(/^\s*>\s?/,'')))); i++; }
+        out.push('<blockquote>'+buf.join('<br>')+'</blockquote>'); continue; }
+      if(/^\s*([-*+])\s+/.test(line)){ flush(); const buf=[];
+        while(i<lines.length && /^\s*([-*+])\s+/.test(lines[i])){ buf.push('<li>'+inline(esc(lines[i].replace(/^\s*[-*+]\s+/,'')))+'</li>'); i++; }
+        out.push('<ul>'+buf.join('')+'</ul>'); continue; }
+      if(/^\s*\d+\.\s+/.test(line)){ flush(); const buf=[];
+        while(i<lines.length && /^\s*\d+\.\s+/.test(lines[i])){ buf.push('<li>'+inline(esc(lines[i].replace(/^\s*\d+\.\s+/,'')))+'</li>'); i++; }
+        out.push('<ol>'+buf.join('')+'</ol>'); continue; }
+      para.push(inline(esc(line))); i++;
+    }
+    flush();
+    return out.join('\n').replace(/\u0001(\d+)\u0002/g,function(m,n){return blocks[+n];});
+  }
+
+  function save(){ try{ localStorage.setItem(KEY,editor.value); }catch(e){} }
+
+  function render(){
+    preview.innerHTML=mdToHtml(editor.value);
+    preview.querySelectorAll('.codeblock').forEach(function(cb){
+      const btn=cb.querySelector('.codecopy'), code=cb.querySelector('code');
+      if(btn&&code) btn.addEventListener('click',function(){navigator.clipboard.writeText(code.textContent).then(function(){btn.textContent='コピーしました';setTimeout(function(){btn.textContent='コピー';},1400);}).catch(function(){});});
+    });
+    count.textContent=[...editor.value.trim()].length.toLocaleString('ja-JP')+' 文字';
+  }
+
+  /* restore saved note */
+  try{ const saved=localStorage.getItem(KEY); if(saved!==null && saved.trim()!=='') editor.value=saved; }catch(e){}
+  render();
+  editor.addEventListener('input',function(){ render(); save(); });
+
+  /* mode switch */
+  const segs={preview:document.getElementById('segPreview'),split:document.getElementById('segSplit'),edit:document.getElementById('segEdit')};
+  function setMode(mode){ document.body.dataset.mode=mode; Object.keys(segs).forEach(function(k){segs[k].classList.toggle('active',k===mode);}); }
+  segs.preview.addEventListener('click',function(){setMode('preview');});
+  segs.split.addEventListener('click',function(){setMode('split');});
+  segs.edit.addEventListener('click',function(){setMode('edit');});
+
+  /* toolbar */
+  const fileInput=document.getElementById('fileInput');
+  document.getElementById('openBtn').addEventListener('click',function(){fileInput.click();});
+  fileInput.addEventListener('change',function(){
+    const f=fileInput.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=function(){ editor.value=r.result; render(); save(); setMode('preview'); };
+    r.readAsText(f,'utf-8'); fileInput.value='';
+  });
+  document.getElementById('newBtn').addEventListener('click',function(){
+    if(editor.value.trim()==='' || confirm('今の内容を消して、新しいノートを始めますか？')){ editor.value=''; render(); save(); setMode('edit'); editor.focus(); }
+  });
+  document.getElementById('copyBtn').addEventListener('click',function(e){
+    const b=e.target,tx=b.textContent;
+    navigator.clipboard.writeText(editor.value).then(function(){b.textContent='コピーしました';setTimeout(function(){b.textContent=tx;},1400);}).catch(function(){editor.select();document.execCommand('copy');});
+  });
+  document.getElementById('downloadBtn').addEventListener('click',function(){
+    const blob=new Blob([editor.value],{type:'text/markdown;charset=utf-8'});
+    const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='note.md'; a.click(); URL.revokeObjectURL(url);
+  });
+  editor.addEventListener('keydown',function(e){
+    if(e.key==='Tab'){ e.preventDefault(); const s=editor.selectionStart,en=editor.selectionEnd;
+      editor.value=editor.value.slice(0,s)+'  '+editor.value.slice(en); editor.selectionStart=editor.selectionEnd=s+2; render(); save(); }
+  });
+
+  if('serviceWorker' in navigator){ window.addEventListener('load',function(){ navigator.serviceWorker.register('./sw.js').catch(function(){}); }); }
+</script>
+</body>
+</html>
