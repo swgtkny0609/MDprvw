@@ -1,11 +1,15 @@
-const CACHE = 'md-note-v4';
+const CACHE = 'md-note-v5';
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',
-  './icon-maskable-512.png'
+  './icon-maskable-512.png',
+  './icon-16.png',
+  './icon-32.png',
+  './icon-48.png',
+  './icon-256.png'
 ];
 
 self.addEventListener('install', (e) => {
